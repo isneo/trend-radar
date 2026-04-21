@@ -14,6 +14,7 @@ dependencies = [
     "litellm==1.82.6",
     "json-repair==0.58.6",
     "tenacity==8.5.0",
+    "jinja2>=3.1",
 ]
 
 [project.scripts]
@@ -29,3 +30,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["trendradar", "mcp_server"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"trendradar/report/assets" = "trendradar/report/assets"
+"trendradar/report/templates" = "trendradar/report/templates"

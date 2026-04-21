@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# Runtime outputs (regenerated each crawler run)
+output/meta/
+output/html/
+output/sqlite/
+output/txt/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+/tmp/
+*.tmp
+*.bak
