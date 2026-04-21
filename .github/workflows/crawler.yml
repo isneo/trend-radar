@@ -186,7 +186,15 @@ jobs:
         with:
           path: _site
 
-  deploy:
+      - name: Upload plain site artifact (for Cloudflare)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-output
+          path: _site
+          retention-days: 1
+
+  deploy-github:
     needs: crawl
     runs-on: ubuntu-latest
     permissions:
@@ -199,3 +207,20 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  deploy-cloudflare:
+    needs: crawl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-output
+          path: _site
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy _site --project-name=trend-radar --branch=main
