@@ -12,8 +12,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from app.bot.handlers import feishu as feishu_handlers
 from app.bot.handlers import personal
-from app.bot.repo import DbPersonalRepo
+from app.bot.repo import DbBotRepo
 from app.config import get_settings
 from app.db import AsyncSessionLocal
 
@@ -31,7 +32,7 @@ async def main() -> None:
     def _with_repo(handler):
         async def _wrap(msg: Message):
             async with AsyncSessionLocal() as session:
-                await handler(msg, repo=DbPersonalRepo(session))
+                await handler(msg, repo=DbBotRepo(session))
         return _wrap
 
     dp.message.register(_with_repo(personal.handle_start), Command("start"))
@@ -40,6 +41,10 @@ async def main() -> None:
     dp.message.register(_with_repo(personal.handle_unsubscribe), Command("unsubscribe"))
     dp.message.register(_with_repo(personal.handle_pause), Command("pause"))
     dp.message.register(_with_repo(personal.handle_resume), Command("resume"))
+
+    dp.message.register(_with_repo(feishu_handlers.handle_add_feishu_group), Command("add_feishu_group"))
+    dp.message.register(_with_repo(feishu_handlers.handle_my_feishu_groups), Command("my_feishu_groups"))
+    dp.message.register(_with_repo(feishu_handlers.handle_remove_feishu_group), Command("remove_feishu_group"))
 
     try:
         await dp.start_polling(bot)
