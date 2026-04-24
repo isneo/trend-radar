@@ -2,29 +2,36 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, utcnow
 
 
 class DeliveryLog(Base):
-    """Tracks what item has been delivered to what user on what channel.
+    """Idempotent delivery ledger (ADR-011).
 
-    Used to de-dupe: never send the same (user, item, channel) twice.
+    UNIQUE(subscription_id, item_fingerprint, delivery_target) guarantees
+    that INSERT ... ON CONFLICT DO NOTHING RETURNING id is atomic per target.
     """
 
     __tablename__ = "delivery_log"
     __table_args__ = (
-        UniqueConstraint("user_id", "item_fingerprint", "channel", name="uq_delivery_once"),
+        UniqueConstraint(
+            "subscription_id", "item_fingerprint", "delivery_target",
+            name="uq_delivery_once",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    subscription_id: Mapped[int] = mapped_column(
+        ForeignKey("subscriptions.id", ondelete="CASCADE"), index=True, nullable=False
     )
     item_fingerprint: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
-    channel: Mapped[str] = mapped_column(String(32), nullable=False)
-    sent_at: Mapped[datetime] = mapped_column(
+    delivery_target: Mapped[str] = mapped_column(String(64), nullable=False)
+    enqueued_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
