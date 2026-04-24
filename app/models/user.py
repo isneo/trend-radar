@@ -14,7 +14,7 @@ class User(Base, TimestampMixin):
     tg_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     display_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     locale: Mapped[str] = mapped_column(String(16), default="zh-CN", nullable=False)
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True, server_default="true", nullable=False)
 
     subscriptions: Mapped[list["Subscription"]] = relationship(  # noqa: F821
         back_populates="user", cascade="all, delete-orphan"

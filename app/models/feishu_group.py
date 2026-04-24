@@ -17,7 +17,7 @@ class FeishuGroup(Base, TimestampMixin):
     )
     name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     webhook_url: Mapped[str] = mapped_column(String(512), unique=True, nullable=False)
-    status: Mapped[str] = mapped_column(String(16), default="active", nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="active", server_default="active", nullable=False)
     last_broken_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     owner: Mapped["User"] = relationship(back_populates="feishu_groups")  # noqa: F821

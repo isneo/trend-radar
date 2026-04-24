@@ -41,7 +41,7 @@ def upgrade() -> None:
     op.create_index('ix_crawl_history_first_seen_at', 'crawl_history', ['first_seen_at'], unique=False)
     op.create_table('dispatch_state',
     sa.Column('key', sa.String(length=32), nullable=False),
-    sa.Column('last_dispatched_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('last_dispatched_at', sa.DateTime(timezone=True), server_default=sa.text("'1970-01-01 00:00:00+00:00'::timestamptz"), nullable=False),
     sa.PrimaryKeyConstraint('key')
     )
     op.create_table('users',
@@ -50,7 +50,7 @@ def upgrade() -> None:
     sa.Column('tg_username', sa.String(length=64), nullable=True),
     sa.Column('display_name', sa.String(length=128), nullable=True),
     sa.Column('locale', sa.String(length=16), server_default='zh-CN', nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -61,7 +61,7 @@ def upgrade() -> None:
     sa.Column('owner_user_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=True),
     sa.Column('webhook_url', sa.String(length=512), nullable=False),
-    sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('status', sa.String(length=16), server_default='active', nullable=False),
     sa.Column('last_broken_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),

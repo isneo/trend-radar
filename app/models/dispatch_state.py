@@ -18,4 +18,5 @@ class DispatchState(Base):
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime(1970, 1, 1, tzinfo=timezone.utc),
+        server_default="1970-01-01 00:00:00+00:00",
     )
