@@ -7,6 +7,7 @@ can coexist; read_latest() returns the freshest timestamp across all.
 from __future__ import annotations
 
 import logging
+import socket
 import threading
 import time
 
@@ -24,10 +25,10 @@ def _loop() -> None:
     import redis
 
     client = redis.from_url(settings.redis_url, decode_responses=True)
-    key = f"{_KEY_PREFIX}{threading.get_ident()}"
+    key = f"{_KEY_PREFIX}{socket.gethostname()}"
     while True:
         try:
-            client.set(key, time.time(), ex=_TTL_SECONDS)
+            client.set(key, str(int(time.time())), ex=_TTL_SECONDS)
         except Exception:
             logger.exception("heartbeat write failed")
         time.sleep(_INTERVAL_SECONDS)

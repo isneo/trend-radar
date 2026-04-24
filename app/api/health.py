@@ -42,9 +42,14 @@ async def healthz(deep: int = 0, response: Response = None) -> dict:
         from app.config import get_settings
 
         r = aioredis.from_url(get_settings().redis_url, decode_responses=True)
-        await r.ping()
-        await r.aclose()
-        checks["redis"] = "ok"
+        try:
+            await r.ping()
+            checks["redis"] = "ok"
+        except Exception as e:
+            checks["redis"] = f"error: {e}"
+            ok = False
+        finally:
+            await r.aclose()
     except Exception as exc:
         checks["redis"] = f"error: {exc}"
         ok = False
@@ -57,12 +62,13 @@ async def healthz(deep: int = 0, response: Response = None) -> dict:
         if latest is None:
             checks["worker_heartbeat"] = "missing"
             ok = False
-        elif time.time() - latest > _HEARTBEAT_MAX_AGE:
-            age = int(time.time() - latest)
-            checks["worker_heartbeat"] = f"stale ({age}s ago)"
-            ok = False
         else:
-            checks["worker_heartbeat"] = "ok"
+            age = int(time.time() - latest)
+            if age > _HEARTBEAT_MAX_AGE:
+                checks["worker_heartbeat"] = f"age={age}s (stale)"
+                ok = False
+            else:
+                checks["worker_heartbeat"] = f"age={age}s"
     except Exception as exc:
         checks["worker_heartbeat"] = f"error: {exc}"
         ok = False
