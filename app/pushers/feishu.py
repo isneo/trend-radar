@@ -32,7 +32,10 @@ class FeishuPusher(Pusher):
         if resp.status_code >= 400:
             raise BrokenChannel(f"feishu {resp.status_code}: {resp.text[:200]}")
 
-        body = resp.json() if resp.content else {}
+        try:
+            body = resp.json() if resp.content else {}
+        except ValueError as e:
+            raise Retryable(f"feishu malformed response: {e}") from e
         code = int(body.get("code", 0))
         if code == 0:
             return PushResult.SENT

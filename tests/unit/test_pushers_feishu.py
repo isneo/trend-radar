@@ -49,3 +49,13 @@ async def test_5xx_is_retryable(pusher: FeishuPusher):
     respx.post(_URL).mock(return_value=httpx.Response(503))
     with pytest.raises(Retryable):
         await pusher.push(PushContext(target_external_id=_URL), _item())
+
+
+@pytest.mark.unit
+@respx.mock
+async def test_malformed_json_is_retryable(pusher: FeishuPusher):
+    respx.post(_URL).mock(
+        return_value=httpx.Response(200, content=b"not-json", headers={"content-type": "application/json"})
+    )
+    with pytest.raises(Retryable):
+        await pusher.push(PushContext(target_external_id=_URL), _item())
