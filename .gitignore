@@ -23,3 +23,12 @@ Thumbs.db
 /tmp/
 *.tmp
 *.bak
+
+# Env files (local only — never commit)
+.env
+.env.local
+.env.*.local
+
+# Alembic (keep versions/ but ignore __pycache__)
+app/alembic/__pycache__/
+
