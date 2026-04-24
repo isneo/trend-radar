@@ -15,9 +15,12 @@ Real DataFetcher shape (verified from fetcher.py + __main__.py):
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterable
 
 from app.fingerprint import fingerprint as _fingerprint
+
+log = logging.getLogger(__name__)
 
 
 def _fetch_all_impl(
@@ -41,6 +44,10 @@ def _fetch_all_impl(
     proxy_url = config.get("DEFAULT_PROXY") or None
     request_interval = config.get("REQUEST_INTERVAL", 100)
 
+    if not ids_list:
+        log.warning("fetch_all: no PLATFORMS configured; yielding 0 items")
+        return
+
     fetcher = DataFetcher(proxy_url=proxy_url)
     results, id_to_name, _ = fetcher.crawl_websites(ids_list, request_interval)
 
@@ -50,6 +57,7 @@ def _fetch_all_impl(
         for title, item_data in title_map.items():
             url = item_data.get("url") or item_data.get("mobileUrl", "")
             if not url or not title:
+                log.debug("skipping item with missing url/title in source=%s: %s", source_id, title)
                 continue
             yield CrawledItem(
                 fingerprint=_fingerprint(source_name, url),
