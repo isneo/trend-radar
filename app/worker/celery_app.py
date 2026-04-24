@@ -3,8 +3,10 @@ from __future__ import annotations
 from celery import Celery
 
 from app.config import get_settings
+from app.observability.sentry import init_sentry
 
 _settings = get_settings()
+init_sentry("worker")
 
 celery_app: Celery = Celery(
     "trendradar",
@@ -35,3 +37,12 @@ celery_app.conf.update(
         },
     },
 )
+
+from celery.signals import worker_ready  # noqa: E402
+
+
+@worker_ready.connect
+def _on_worker_ready(**_) -> None:
+    from app.worker.heartbeat import start_heartbeat
+
+    start_heartbeat()

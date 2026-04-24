@@ -21,6 +21,9 @@ from app.db import AsyncSessionLocal
 
 async def main() -> None:
     settings = get_settings()
+    from app.observability.sentry import init_sentry
+
+    init_sentry("bot")
     logging.basicConfig(level=settings.log_level.upper())
 
     if not settings.telegram_bot_token:
