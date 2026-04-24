@@ -4,6 +4,8 @@ import pytest
 
 from app.bot.handlers.personal import (
     handle_list,
+    handle_pause,
+    handle_resume,
     handle_start,
     handle_subscribe,
     handle_unsubscribe,
@@ -24,6 +26,7 @@ class _FakeRepo:
         self.users: dict[int, dict] = {}
         self.subs: list[dict] = []
         self.next_sub_id = 1
+        self.user_active: dict[int, bool] = {}
 
     async def upsert_user(self, tg_user_id, tg_username, display_name):
         if tg_user_id not in self.users:
@@ -44,6 +47,16 @@ class _FakeRepo:
         before = len(self.subs)
         self.subs = [s for s in self.subs if not (s["user_id"] == user_id and s["id"] == sub_id)]
         return len(self.subs) < before
+
+    async def set_user_active(self, user_id, active):
+        self.user_active[user_id] = active
+
+    async def set_subscription_active(self, user_id, sub_id, active):
+        for s in self.subs:
+            if s["user_id"] == user_id and s["id"] == sub_id:
+                s["is_active"] = active
+                return True
+        return False
 
 
 @pytest.fixture
@@ -94,3 +107,21 @@ async def test_unsubscribe_removes(repo: _FakeRepo):
     msg = _Msg("/unsubscribe 1")
     await handle_unsubscribe(msg, repo=repo)
     assert repo.subs == []
+
+
+@pytest.mark.unit
+async def test_pause_sets_user_inactive_and_responds(repo: _FakeRepo):
+    await repo.upsert_user(123, "neo", "Neo")
+    msg = _Msg("/pause")
+    await handle_pause(msg, repo=repo)
+    assert repo.user_active[123] is False
+    assert "暂停" in msg.answer.call_args.args[0]
+
+
+@pytest.mark.unit
+async def test_resume_sets_user_active_and_responds(repo: _FakeRepo):
+    await repo.upsert_user(123, "neo", "Neo")
+    msg = _Msg("/resume")
+    await handle_resume(msg, repo=repo)
+    assert repo.user_active[123] is True
+    assert "恢复" in msg.answer.call_args.args[0]
