@@ -112,7 +112,7 @@ class DbBotRepo:
             delete(FeishuGroup).where(FeishuGroup.id == group_id, FeishuGroup.owner_user_id == user_sq)
         )
         await self._s.execute(
-            delete(Subscription).where(Subscription.delivery_targets.any(f"feishu:{group_id}"))
+            delete(Subscription).where(Subscription.delivery_targets.any(f"feishu:{group_id}"), Subscription.user_id == user_sq)
         )
         await self._s.commit()
         return result.rowcount > 0
@@ -126,5 +126,5 @@ class DbBotRepo:
                 body = resp.json() if resp.content else {}
                 return int(body.get("code", 0)) == 0
             return False
-        except (httpx.TimeoutException, httpx.NetworkError):
+        except (httpx.HTTPError, ValueError):
             return False
