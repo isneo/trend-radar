@@ -84,7 +84,7 @@ async def _dispatch_impl() -> int:
         if state is None:
             state = DispatchState(key="global")
             s.add(state)
-            await s.flush()
+            await s.commit()
 
         new_items = (await s.execute(
             select(CrawlHistory)
@@ -150,6 +150,8 @@ async def _push_impl(sub_id: int, fp: str, target: str, tg_user_id: int) -> str:
         row_id = (await s.execute(ins)).scalar_one_or_none()
         await s.commit()
         if row_id is None:
+            log.info("delivery skipped: already-logged (sub=%s, fp=%s, target=%s)",
+                     sub_id, fp, target)
             return PushResult.SKIPPED.value  # already delivered
 
         item = (await s.execute(
