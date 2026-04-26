@@ -41,7 +41,8 @@ def _fetch_all_impl(
         if not sources or p["id"] in sources
     ]
 
-    proxy_url = config.get("DEFAULT_PROXY") or None
+    use_proxy = bool(config.get("USE_PROXY", False))
+    proxy_url = config.get("DEFAULT_PROXY") if use_proxy else None
     request_interval = config.get("REQUEST_INTERVAL", 100)
 
     if not ids_list:
