@@ -11,9 +11,10 @@ from typing import Any
 
 
 def parse_keywords(raw: str) -> list[str]:
-    """Comma-delimited → normalized, deduped, lowercased, non-empty."""
+    """Comma-delimited (ASCII or fullwidth) → normalized, deduped, lowercased, non-empty."""
+    normalized = raw.replace("，", ",")
     seen: dict[str, None] = {}
-    for token in raw.split(","):
+    for token in normalized.split(","):
         t = token.strip().lower()
         if t:
             seen[t] = None

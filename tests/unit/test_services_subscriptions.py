@@ -22,6 +22,12 @@ class TestParseKeywords:
         with pytest.raises(ValueError):
             parse_keywords(" ,  ,")
 
+    def test_fullwidth_comma(self):
+        assert parse_keywords("美国，特朗普，白宫") == ["美国", "特朗普", "白宫"]
+
+    def test_mixed_commas(self):
+        assert parse_keywords("ai，ml, rag") == ["ai", "ml", "rag"]
+
 
 @pytest.mark.unit
 def test_format_subscription_list_empty():
