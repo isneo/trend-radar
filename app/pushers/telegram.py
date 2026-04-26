@@ -5,6 +5,7 @@ Uses sendMessage with HTML parse mode; 10s timeout (ADR-011 §3).
 
 from __future__ import annotations
 
+import os
 from html import escape
 
 import httpx
@@ -28,7 +29,10 @@ class TelegramPusher(Pusher):
             "disable_web_page_preview": False,
         }
         try:
-            async with httpx.AsyncClient(timeout=self._timeout, trust_env=False) as client:
+            proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+            async with httpx.AsyncClient(
+                timeout=self._timeout, trust_env=False, proxy=proxy
+            ) as client:
                 resp = await client.post(url, json=payload)
         except (httpx.TimeoutException, httpx.NetworkError) as e:
             raise Retryable(f"telegram network: {e}") from e

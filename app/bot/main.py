@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.filters import Command
 from aiogram.types import Message
 
@@ -29,7 +31,13 @@ async def main() -> None:
     if not settings.telegram_bot_token:
         raise RuntimeError("TELEGRAM_BOT_TOKEN missing in .env.local")
 
-    bot = Bot(token=settings.telegram_bot_token, default_parse_mode="HTML")
+    proxy_url = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+    session = AiohttpSession(proxy=proxy_url) if proxy_url else None
+    bot = Bot(
+        token=settings.telegram_bot_token,
+        default_parse_mode="HTML",
+        session=session,
+    )
     dp = Dispatcher()
 
     def _with_repo(handler):
