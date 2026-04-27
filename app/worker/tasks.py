@@ -125,10 +125,14 @@ async def _dispatch_impl() -> int:
     max_retries=3,
 )
 def push_task(self, subscription_id: int, fp: str, delivery_target: str, tg_user_id: int) -> str:
+    return asyncio.run(_run_push(subscription_id, fp, delivery_target, tg_user_id))
+
+
+async def _run_push(sub_id: int, fp: str, target: str, tg_user_id: int) -> str:
     try:
-        return asyncio.run(_push_impl(subscription_id, fp, delivery_target, tg_user_id))
+        return await _push_impl(sub_id, fp, target, tg_user_id)
     except BrokenChannel as e:
-        asyncio.run(_mark_broken(delivery_target, str(e)))
+        await _mark_broken(target, str(e))
         return "broken"
 
 
