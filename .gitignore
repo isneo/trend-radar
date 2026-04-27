@@ -24,6 +24,10 @@ Thumbs.db
 *.tmp
 *.bak
 
+# Celery beat scheduler state (regenerated at runtime)
+celerybeat-schedule
+celerybeat-schedule.*
+
 # Env files (local only — never commit)
 .env
 .env.local

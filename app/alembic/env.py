@@ -15,9 +15,12 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Pull the sync URL from pydantic settings so it lives in .env.local.
-_settings = get_settings()
-config.set_main_option("sqlalchemy.url", _settings.database_url_sync)
+# Pull the sync URL from pydantic settings so it lives in .env.local — but
+# only if no URL has been provided externally (e.g. by tests calling
+# command.upgrade with a pre-set sqlalchemy.url).
+if not config.get_main_option("sqlalchemy.url"):
+    _settings = get_settings()
+    config.set_main_option("sqlalchemy.url", _settings.database_url_sync)
 
 target_metadata = Base.metadata
 
